@@ -1,0 +1,1 @@
+sudo mariadb -u root < ~/Documents/BDD-FastAPI/database/init.sql
