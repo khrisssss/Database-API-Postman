@@ -54,18 +54,24 @@ CREATE TABLE IF NOT EXISTS lastname (                  -- last name is optional 
         ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS relationship ( 
-    id int NOT NULL AUTO_INCREMENT,
-    parent_id int NOT NULL,
-    child_id int NOT NULL,
+CREATE TABLE IF NOT EXISTS relationship (
+    id        INT NOT NULL AUTO_INCREMENT,
+    parent_id INT NOT NULL,
+    child_id  INT NOT NULL,
+    type ENUM('biological', 'adoptive', 'step', 'other') NOT NULL DEFAULT 'biological',
     PRIMARY KEY (id),
 
-    CONSTRAINT chk_not_self_parent              -- RULE: a person cannot be their own parent
+    CONSTRAINT chk_not_self_parent
         CHECK (parent_id != child_id),
 
-    UNIQUE KEY unique_relationship (parent_id, child_id)  -- RULE: no duplicate relationship
-                                                    -- ex. you cannot add "Yacine is biological parent of Noemi" twice  
-);                                                 
+    UNIQUE KEY unique_relationship (parent_id, child_id, type),
+
+    CONSTRAINT fk_relationship_parent
+        FOREIGN KEY (parent_id) REFERENCES person(id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_relationship_child
+        FOREIGN KEY (child_id) REFERENCES person(id) ON DELETE CASCADE
+);                                      
 
 
 SHOW TABLES;

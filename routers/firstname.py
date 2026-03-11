@@ -5,7 +5,7 @@ from database.connection import get_connection
 
 router = APIRouter()
 
-class FirstNameCreate(BaseModel):
+class FirstnameBody(BaseModel):
     firstname: str 
 
     @field_validator('firstname')
@@ -16,7 +16,7 @@ class FirstNameCreate(BaseModel):
         return value.strip()
     
 @router.post("/persons/{person_id}/firstname", status_code= 201, tags=["FirstName"])
-def Add_a_new_firstname_to_a_person(person_id: int, body: FirstNameCreate):
+def Add_a_new_firstname_to_a_person(person_id: int, body: FirstnameBody):
     """ This will create only a firstname for a specific person using the person_id """
     db= get_connection()
     cursor= db.cursor()
@@ -49,7 +49,7 @@ def Add_a_new_firstname_to_a_person(person_id: int, body: FirstNameCreate):
         print("Personid", person_id)
         print("firstname", body.firstname)
         return {
-            "id": cursor.lastrowid,                                              # lastrowid will give a new number 
+            "id": cursor.lastrowid,                                              # lastrowid will give a new id number 
             "person_id": person_id,
             "firstname": body.firstname                                     #insert firstname into firstname table 
         }
@@ -61,7 +61,7 @@ def Add_a_new_firstname_to_a_person(person_id: int, body: FirstNameCreate):
         db.close()
     
 @router.put("/persons/{person_id}/firstnames/{firstname_id}",tags=["FirstName"])
-def Update_a_firstname(person_id: int, firstname_id: int, body: FirstNameCreate):
+def Update_a_firstname(person_id: int, firstname_id: int, body: FirstnameBody):
     """ Rename an existing firstname using the person_id and firstname_id """
     db= get_connection()
     cursor= db.cursor()

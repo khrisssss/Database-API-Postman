@@ -22,25 +22,27 @@ def Add_a_new_lastname_to_a_person(person_id: int, body: LastnameBody):
     cursor = db.cursor()
 
     try: 
+        print('hello')
         cursor.execute(
-            "SELECT id FROM person WHERE id = %s",
+            "SELECT id FROM person WHERE id = %s",     #select the id from person table
             (person_id,)
         )
-        if not cursor.fetchone():
+        
+        if not cursor.fetchone():                      # if it does not exist it will raise an error
             raise HTTPException(
                 status_code=404,
                 detail=f"Person with id={person_id} not found"
             )
-        
+        print('hello')
         cursor.execute(
-            "INSERT INTO lastname (person_id, lastname) VALUES (%s, %s)",
+            "INSERT INTO lastname (person_id, lastname) VALUES (%s, %s)",   # When person_id exist then it will insert into lastname with the person_id and new lastname
             (person_id, body.lastname)
         )
         db.commit()
 
         return {
-            "id": cursor.lastrowid,
-            "person_id": person,
+            "id": cursor.lastrowid,     # then it will give the new id number 
+            "person_id": person_id,
             "lastname": body.lastname
         
         }
@@ -102,6 +104,33 @@ def Delete_lastname(person_id: int, lastname_id: int):
     try: 
 
         cursor.execute(
-            
+            "SELECT id FROM person WHERE id = %s", (person_id,))
+        if not cursor.fetchone():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Person with id={person_id} not found"
+            )
+
+        cursor.execute(
+            "DELETE FROM lastname WHERE id = %s AND person_id = %s",
+            (lastname_id, person_id)
         )
+        db.commit()
+
+        # lastname must exist for this person ───
+        if cursor.rowcount == 0:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Lastname with id={lastname_id} not found for this person"
+            )
+
+        return {"message": "Lastname deleted successfully"}
+
+    except mysql.connector.Error as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+
+    finally:
+        db.close()
+
 
