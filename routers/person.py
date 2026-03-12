@@ -1,4 +1,5 @@
 from datetime import date
+import mysql.connector
 from typing import Optional
 from fastapi import HTTPException
 from pydantic import BaseModel, field_validator
@@ -180,8 +181,10 @@ def Get_information_about_a_specific_person(person_id: int):
 
 @router.patch("/persons/{person_id}", tags=["Person"])
 #def Update_information_about_a_specific_person(person_id: int, update_person: PersonCreate, firstname_id: int = None, lastname_id: int = None):
-def Update_birth_date_or_death_date_of_a_person(person_id: int, update_person: PersonUpdate):
-    """ Updates a person's date of birth or date of death only """
+def Add_or_Update_birth_date_and_death_date_of_a_person(person_id: int, update_person: PersonUpdate):
+    """  Adds or updates the birth date and/or death date of an existing person.
+    Only send the field you want to change — the other one will stay the same.
+    Send null to remove a date. """
     db = get_connection()
     cursor = db.cursor()
 
@@ -192,9 +195,22 @@ def Update_birth_date_or_death_date_of_a_person(person_id: int, update_person: P
         )
         person = cursor.fetchone()
 
-        # Keep old value if no new value was sent
-        new_birth = update_person.birth_date if update_person.birth_date else person[1]
-        new_death = update_person.death_date if update_person.death_date else person[2]
+        # ── CONSTRAINT: person must exist ─────────────────────
+        if not person:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Person with id={person_id} not found"
+            )
+
+        if "birth_date" in update_person.model_fields_set:   #model_fields-set  to know if the user actually send this field or not
+            new_birth = update_person.birth_date  # use what user sent (even if null)
+        else:
+            new_birth = person[1]                 # keep old value
+
+        if "death_date" in update_person.model_fields_set:
+            new_death = update_person.death_date  # use what user sent (even if null)
+        else:
+            new_death = person[2]                 # keep old value
 
         cursor.execute(
             "UPDATE person SET birth_date = %s, death_date = %s WHERE id = %s",
@@ -214,6 +230,7 @@ def Update_birth_date_or_death_date_of_a_person(person_id: int, update_person: P
 
     finally:
         db.close()
+
 
 
 @router.delete("/persons/{person_id}", status_code=201, tags=["Person"])

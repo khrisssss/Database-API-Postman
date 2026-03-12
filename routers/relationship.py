@@ -16,7 +16,7 @@ class ParentAdd(BaseModel):
 
 
 @router.post("/persons/{person_id}/parents", status_code=201, tags=["Relationships"])
-def Add_a_new_parent_to_a_person(person_id: int, body: ParentAdd):
+def Add_parent_to_a_person(person_id: int, body: ParentAdd):
     """ This will create only a parent for a specific person using the person_id """
 
     # CONSTRAINT: valid relationship type 
