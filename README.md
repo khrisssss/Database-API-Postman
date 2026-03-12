@@ -79,8 +79,8 @@ The connection is configured in `database/connection.py`:
 def get_connection():
     return mysql.connector.connect(
         host="localhost",
-        user="khris",
-        password="cute",
+        user="user",
+        password="password",
         database="Bob_Family_Tree"
     )
 ```
